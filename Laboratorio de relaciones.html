@@ -1,0 +1,369 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Laboratorio de relaciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: banco de trabajo de tres paneles (matriz · dígrafo · detector) sobre papel milimetrado; se apila en teléfono */
+:root{
+  --bg:#F6F7F4; --paper:#FFFFFF; --grid:#E3E7E1; --ink:#17251F; --muted:#5E6B64; --line:#CDD5CF;
+  --ceibo:#C21D3A; --ceibo-soft:#FBE6EA; --leaf:#2F6B4F; --leaf-soft:#E2F0E8; --gold:#B7791F; --gold-soft:#FBF0DC;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111815; --paper:#18211D; --grid:#1F2A25; --ink:#E8EEEA; --muted:#9AA9A1; --line:#2E3B35;
+  --ceibo:#FF6B81; --ceibo-soft:#3A1C23; --leaf:#6FCB9C; --leaf-soft:#16352A; --gold:#F0B65A; --gold-soft:#3A2D16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111815; --paper:#18211D; --grid:#1F2A25; --ink:#E8EEEA; --muted:#9AA9A1; --line:#2E3B35;
+  --ceibo:#FF6B81; --ceibo-soft:#3A1C23; --leaf:#6FCB9C; --leaf-soft:#16352A; --gold:#F0B65A; --gold-soft:#3A2D16; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+.brand small{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ceibo)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,44px);line-height:1.02;margin:4px 0 0;letter-spacing:-.02em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--ceibo)}
+.score{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:13px;border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 12px;white-space:nowrap}
+.chip b{color:var(--ceibo)}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+nav button{font:700 15px var(--body);border:1.5px solid var(--ink);background:var(--paper);color:var(--ink);padding:8px 16px;border-radius:10px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,select:focus-visible,.cell:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.bench{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr) minmax(0,320px);gap:14px}
+@media (max-width:980px){.bench{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.bench .graphp{grid-column:1/-1;order:-1}}
+.bench.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:640px){.bench,.bench.two{grid-template-columns:minmax(0,1fr)}.qgrid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:800;font-size:19px;margin:0 0 8px;letter-spacing:-.01em}
+.lbl{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+select,.btn{font:700 14px var(--body);border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 10px}
+select{width:100%;margin:4px 0 10px}
+.btn{cursor:pointer}.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ceibo);border-color:var(--ceibo);color:#fff}
+.btn.on{background:var(--leaf-soft);border-color:var(--leaf);color:var(--leaf)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ctx{font-size:14px;color:var(--muted);margin:0 0 8px}
+.mxwrap{overflow-x:auto}
+table.mx{border-collapse:collapse;font-family:var(--mono);font-size:13px;margin:6px 0}
+table.mx th{font-weight:600;color:var(--muted);padding:2px 4px;font-size:11.5px;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.mx td{padding:2px}
+.cell{width:36px;height:34px;border:1.5px solid var(--line);border-radius:7px;background:var(--paper);color:var(--muted);font:600 14px var(--mono);cursor:pointer;transition:transform .12s}
+.cell.one{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.cell.diag{border-style:dashed}
+.cell.hit{box-shadow:0 0 0 3px var(--ceibo)}
+.cell.miss{box-shadow:0 0 0 3px var(--gold)}
+.cell:active{transform:scale(.92)}
+.pairs{font-family:var(--mono);font-size:13px;background:var(--bg);border-radius:8px;padding:8px 10px;word-break:break-word;margin-top:8px}
+.graphp{display:flex;flex-direction:column}
+.svgbox{position:relative;width:100%;aspect-ratio:1/0.82;max-width:100%}
+.svgbox svg{width:100%;height:100%;display:block}
+.hint{font-size:13.5px;color:var(--muted);margin:4px 0 0}
+.node circle{fill:var(--paper);stroke:var(--ink);stroke-width:2.5;cursor:pointer}
+.node.sel circle{fill:var(--gold-soft);stroke:var(--gold);stroke-width:3.5}
+.node.hl circle{stroke:var(--ceibo);stroke-width:3.5}
+.node text{fill:var(--ink);font:700 14px var(--body);pointer-events:none}
+.edge{fill:none;stroke:var(--ink);stroke-width:2}
+.edge.hl{stroke:var(--ceibo);stroke-width:3.2}
+.edge.add{stroke:var(--leaf);stroke-dasharray:6 4;stroke-width:2.4}
+.edge.miss{stroke:var(--gold);stroke-dasharray:5 4;stroke-width:3}
+.props{display:grid;gap:8px}
+.prop{border:1.5px solid var(--line);border-radius:11px;padding:9px 12px;cursor:pointer;background:var(--paper);text-align:left;font:inherit;color:inherit;width:100%}
+.prop .t{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
+.prop .st{font-family:var(--mono);font-size:12px;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.prop.yes .st{background:var(--leaf-soft);color:var(--leaf)}
+.prop.no .st{background:var(--ceibo-soft);color:var(--ceibo)}
+.prop .why{font-size:13.5px;color:var(--muted);margin-top:3px}
+.prop.active{border-color:var(--ceibo)}
+.verdict{margin-top:10px;border-radius:11px;padding:10px 12px;background:var(--gold-soft);font-size:14.5px}
+.verdict b{font-family:var(--display);font-size:17px}
+/* desafíos */
+.chgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.chbtn{font:inherit;color:inherit;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:11px;padding:9px 11px;cursor:pointer;min-width:0}
+.chbtn .n{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.chbtn .s{font-weight:700;font-size:14px;line-height:1.25}
+.chbtn.cur{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
+.chbtn.done{background:var(--leaf-soft);border-color:var(--leaf)}
+.chbtn.done .n::after{content:" ✓ superado";color:var(--leaf)}
+.mission{font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,26px);line-height:1.15;margin:2px 0 8px;text-wrap:balance}
+.req{list-style:none;padding:0;margin:8px 0;display:grid;gap:5px}
+.req li{display:flex;gap:8px;align-items:baseline;font-size:15px}
+.req li::before{content:"○";font-family:var(--mono);color:var(--muted)}
+.req li.ok::before{content:"●";color:var(--leaf)}
+.req li.ok{color:var(--leaf)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(30px);opacity:0;background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:12px;font-weight:700;transition:.3s;z-index:9;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* quiz */
+.qgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.qitem{border:1.5px solid var(--line);border-radius:11px;padding:8px 10px}
+.qitem .name{font-weight:700;margin-bottom:6px}
+.seg{display:flex;gap:4px}
+.seg button{flex:1;font:700 14px var(--body);border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:6px;cursor:pointer}
+.seg button.pick{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.qitem.right{border-color:var(--leaf);background:var(--leaf-soft)}
+.qitem.wrong{border-color:var(--ceibo);background:var(--ceibo-soft)}
+.qitem .fb{font-size:13px;margin-top:5px}
+.bar{height:8px;background:var(--grid);border-radius:99px;overflow:hidden;margin:6px 0 10px}
+.bar i{display:block;height:100%;background:var(--ceibo);transition:width .3s}
+.big{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;color:var(--ceibo)}
+footer{margin-top:22px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+.pop{animation:pop .4s}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="brand"><small>Lógica y Métodos Discretos · Contenido 2.2 · Ceibo Software</small>
+  <h1>Laboratorio de <em>relaciones</em></h1></div>
+  <div class="score"><span class="chip">⭐ Puntos <b id="pts">0</b></span><span class="chip">🔥 Racha <b id="streak">0</b></span><span class="chip">🏅 Desafíos <b id="done">0</b>/10</span></div>
+</header>
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-tab="lab" id="tab-lab">🔬 Laboratorio</button>
+  <button role="tab" aria-selected="false" data-tab="ch" id="tab-ch">🎯 Desafíos</button>
+  <button role="tab" aria-selected="false" data-tab="quiz" id="tab-quiz">⚡ Quiz relámpago</button>
+</nav>
+
+<!-- LABORATORIO -->
+<section id="v-lab">
+<div class="bench">
+  <div class="panel">
+    <h2>Datos</h2>
+    <label class="lbl" for="ds">Relación de la app Previas UTU</label>
+    <select id="ds"></select>
+    <p class="ctx" id="dsctx"></p>
+    <div class="lbl">Matriz booleana · fila = sale, columna = llega</div>
+    <div class="mxwrap"><table class="mx" id="mx"></table></div>
+    <div class="lbl">Por extensión</div>
+    <div class="pairs" id="pairs"></div>
+  </div>
+  <div class="panel graphp">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Dígrafo</h2>
+      <div class="row"><button class="btn" id="bInv" aria-pressed="false">↩ Ver inversa</button><button class="btn" id="bClo" aria-pressed="false">⚡ Cierre transitivo</button><button class="btn" id="bClr">Vaciar</button></div></div>
+    <div class="svgbox"><svg id="g" viewBox="0 0 420 344" role="img" aria-label="Dígrafo de la relación"></svg></div>
+    <p class="hint">Tocar un nodo y después otro para agregar o quitar esa flecha. Tocar dos veces el mismo nodo crea o quita un lazo.</p>
+    <div class="row" style="margin-top:6px"><span class="lbl">Dom</span><span class="pairs" id="dom" style="margin:0;flex:1"></span></div>
+    <div class="row" style="margin-top:6px"><span class="lbl">Ran</span><span class="pairs" id="ran" style="margin:0;flex:1"></span></div>
+  </div>
+  <div class="panel">
+    <h2>Detector de propiedades</h2>
+    <p class="ctx">Tocar una propiedad para ver su contraejemplo en el dígrafo y la matriz.</p>
+    <div class="props" id="props"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+</div>
+</section>
+
+<!-- DESAFÍOS -->
+<section id="v-ch" hidden>
+  <div class="chgrid" id="chlist"></div>
+  <div class="bench">
+    <div class="panel">
+      <div class="lbl" id="chnum"></div>
+      <div class="mission" id="chtitle"></div>
+      <p class="ctx" id="chset"></p>
+      <ul class="req" id="chreq"></ul>
+      <div class="row"><button class="btn primary" id="chcheck">Comprobar</button><button class="btn" id="chhint">💡 Pista</button><button class="btn" id="chreset">Vaciar</button></div>
+      <p class="hint" id="chhinttext" hidden></p>
+    </div>
+    <div class="panel graphp">
+      <h2>Construir la relación</h2>
+      <div class="svgbox"><svg id="g2" viewBox="0 0 420 344" role="img" aria-label="Dígrafo del desafío"></svg></div>
+      <p class="hint">Tocar un nodo y después otro para crear una flecha. Dos veces el mismo nodo: lazo.</p>
+    </div>
+    <div class="panel">
+      <h2>Matriz</h2>
+      <div class="mxwrap"><table class="mx" id="mx2"></table></div>
+      <div class="pairs" id="pairs2"></div>
+      <div class="props" id="props2" style="margin-top:10px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="v-quiz" hidden>
+  <div class="bench two">
+    <div class="panel graphp">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0" id="qtitle">Ronda 1 de 5</h2><span class="chip">Aciertos <b id="qok">0</b></span></div>
+      <div class="bar"><i id="qbar" style="width:0%"></i></div>
+      <div class="svgbox"><svg id="g3" viewBox="0 0 420 344" role="img" aria-label="Dígrafo del quiz"></svg></div>
+      <div class="pairs" id="pairs3"></div>
+    </div>
+    <div class="panel">
+      <h2>¿Qué propiedades cumple?</h2>
+      <p class="ctx">Elegir Sí o No en cada una y comprobar. Cada acierto suma 10 puntos; las cuatro bien suman 20 extra.</p>
+      <div class="qgrid" id="qgrid"></div>
+      <div class="row"><button class="btn primary" id="qcheck">Comprobar</button><button class="btn" id="qnext" hidden>Siguiente ronda →</button></div>
+      <div class="verdict" id="qend" hidden></div>
+    </div>
+  </div>
+</section>
+<footer>Prof. Elizabeth Izquierdo · UTU · Relaciones binarias: las tres flechas de la app Previas UTU. Los perfiles de la app son ficticios.</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const PROPS=[['refl','Reflexiva'],['sym','Simétrica'],['anti','Antisimétrica'],['tran','Transitiva']];
+const DS={
+ S:{name:'S · «sigue a»',set:['Ana','Bruno','Carla','Diego','Eva'],ctx:'Quién sigue a quién en la app. Seguir no tiene por qué ser mutuo.',
+    pairs:[['Ana','Bruno'],['Bruno','Ana'],['Bruno','Carla'],['Carla','Diego'],['Carla','Ana'],['Eva','Ana']]},
+ C:{name:'C · «comparte grupo con»',set:['Ana','Bruno','Carla','Diego','Eva'],ctx:'Ana, Bruno y Eva están en 1MA; Carla y Diego en 1MB. Cada estudiante comparte grupo consigo mismo.',
+    pairs:(()=>{const g={Ana:1,Bruno:1,Eva:1,Carla:2,Diego:2},o=[];for(const a in g)for(const b in g)if(g[a]===g[b])o.push([a,b]);return o})()},
+ P:{name:'P · «es previa de»',set:['P1','LMD','PA','BD','PW'],ctx:'Programación 1, Lógica, Programación Avanzada, Bases de Datos y Programación Web.',
+    pairs:[['P1','PA'],['PA','PW'],['LMD','BD'],['BD','PW']],pos:'P'},
+ G:{name:'G · «le ganó a» (torneo)',set:['1MA','1MB','1MC'],ctx:'Torneo de fútbol 5 entre grupos.',pairs:[['1MA','1MB'],['1MB','1MC'],['1MC','1MA']]},
+ D:{name:'«es divisor de» en {1,2,3,6}',set:['1','2','3','6'],ctx:'a divide a b si b ÷ a da resto 0.',
+    pairs:(()=>{const s=[1,2,3,6],o=[];s.forEach(a=>s.forEach(b=>{if(b%a===0)o.push([''+a,''+b])}));return o})()},
+ F:{name:'Libre · conjunto {a, b, c, d}',set:['a','b','c','d'],ctx:'Inventar una relación desde cero.',pairs:[]}
+};
+// ---------- modelo ----------
+function mk(set,pairs){const n=set.length,M=Array.from({length:n},()=>Array(n).fill(0));(pairs||[]).forEach(([a,b])=>{M[set.indexOf(a)][set.indexOf(b)]=1});return {set,M}}
+const edges=R=>{const o=[];R.M.forEach((r,i)=>r.forEach((v,j)=>{if(v)o.push([i,j])}));return o};
+const T=M=>M.map((r,i)=>r.map((_,j)=>M[j][i]));
+function analyze(R){const M=R.M,n=M.length,s=R.set,res={};
+ let w=null;for(let i=0;i<n;i++)if(!M[i][i]){w=i;break}
+ res.refl=w===null?{ok:true,why:'Todos los elementos tienen lazo: la diagonal está completa.'}:{ok:false,why:`(${s[w]}, ${s[w]}) no está: ${s[w]} no tiene lazo.`,nodes:[w],cells:[[w,w,'miss']]};
+ w=null;for(let i=0;i<n&&!w;i++)for(let j=0;j<n;j++)if(M[i][j]&&!M[j][i]){w=[i,j];break}
+ res.sym=!w?{ok:true,why:'Toda flecha tiene su vuelta: la matriz es igual a su traspuesta.'}:{ok:false,why:`(${s[w[0]]}, ${s[w[1]]}) está, pero (${s[w[1]]}, ${s[w[0]]}) no.`,edges:[w],miss:[[w[1],w[0]]],cells:[[w[0],w[1],'hit'],[w[1],w[0],'miss']]};
+ w=null;for(let i=0;i<n&&!w;i++)for(let j=0;j<n;j++)if(i!==j&&M[i][j]&&M[j][i]){w=[i,j];break}
+ res.anti=!w?{ok:true,why:'Nunca hay ida y vuelta entre dos elementos distintos.'}:{ok:false,why:`(${s[w[0]]}, ${s[w[1]]}) y (${s[w[1]]}, ${s[w[0]]}) están, con ${s[w[0]]} ≠ ${s[w[1]]}.`,edges:[w,[w[1],w[0]]],cells:[[w[0],w[1],'hit'],[w[1],w[0],'hit']]};
+ w=null;let w2=null;for(let i=0;i<n&&!w;i++)for(let j=0;j<n&&!w;j++)if(M[i][j])for(let k=0;k<n;k++)if(M[j][k]&&!M[i][k]){if(i!==k){w=[i,j,k];break}else if(!w2)w2=[i,j,k]}
+ if(!w)w=w2;
+ res.tran=!w?{ok:true,why:'Todo camino de dos pasos tiene su atajo directo.'}:{ok:false,why:`(${s[w[0]]}, ${s[w[1]]}) y (${s[w[1]]}, ${s[w[2]]}) están, pero falta el atajo (${s[w[0]]}, ${s[w[2]]}).`,edges:[[w[0],w[1]],[w[1],w[2]]],miss:[[w[0],w[2]]],cells:[[w[0],w[1],'hit'],[w[1],w[2],'hit'],[w[0],w[2],'miss']]};
+ return res}
+function classes(R){const n=R.set.length,seen=Array(n).fill(0),out=[];for(let i=0;i<n;i++)if(!seen[i]){const c=[];for(let j=0;j<n;j++)if(R.M[i][j]){c.push(j);seen[j]=1}out.push(c)}return out}
+function closure(M){const n=M.length,C=M.map(r=>r.slice());for(let k=0;k<n;k++)for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(C[i][k]&&C[k][j])C[i][j]=1;return C}
+function verdictText(R,a){const s=R.set;
+ if(a.refl.ok&&a.sym.ok&&a.tran.ok){const cl=classes(R).map(c=>'{'+c.map(i=>s[i]).join(', ')+'}');return `<b>⭐ Relación de equivalencia.</b><br>Clases: ${cl.join(' · ')}. Forman una partición del conjunto.`}
+ if(a.refl.ok&&a.anti.ok&&a.tran.ok)return `<b>⭐ Orden parcial.</b><br>Se puede dibujar su diagrama de Hasse: sin lazos, sin atajos, todo hacia arriba.`;
+ if(a.anti.ok&&a.tran.ok&&edges(R).length)return `<b>Casi un orden.</b><br>Es antisimétrica y transitiva. Agregando los lazos que faltan se obtiene un orden parcial.`;
+ const k=PROPS.filter(([p])=>a[p].ok).length;
+ return k?`<b>Ni equivalencia ni orden.</b><br>Cumple ${k} de las 4 propiedades.`:`<b>Ninguna propiedad.</b><br>Como S «sigue a»: cada dirección es un dato y hay que guardar la matriz completa.`}
+// ---------- dibujo ----------
+const NS='http://www.w3.org/2000/svg';
+function layout(R,kind){const n=R.set.length,W=420,H=344,cx=W/2,cy=H/2+4,Rad=Math.min(W,H)/2-52;
+ if(kind==='P'){return {P1:[130,286],LMD:[290,286],PA:[130,172],BD:[290,172],PW:[210,58]}}
+ if(kind==='D'){return {'1':[210,290],'2':[110,175],'3':[310,175],'6':[210,58]}}
+ const o={};R.set.forEach((s,i)=>{const t=-Math.PI/2+2*Math.PI*i/n;o[s]=[cx+Rad*Math.cos(t),cy+Rad*Math.sin(t)]});return o}
+function draw(svg,R,opt){opt=opt||{};const P=layout(R,opt.kind),r=24,s=R.set;svg.innerHTML='';
+ const defs=document.createElementNS(NS,'defs');
+ [['ink','var(--ink)'],['hl','var(--ceibo)'],['add','var(--leaf)'],['miss','var(--gold)']].forEach(([id,c])=>{defs.innerHTML+=`<marker id="m-${svg.id}-${id}" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" refX="12" refY="6.5" orient="auto"><path d="M0,0 L13,6.5 L0,13 z" style="fill:${c}"/></marker>`});svg.appendChild(defs);
+ const gx=Object.values(P).reduce((a,p)=>a+p[0],0)/s.length,gy=Object.values(P).reduce((a,p)=>a+p[1],0)/s.length;
+ const all=new Set();const E=opt.edges||edges(R);E.forEach(([i,j])=>all.add(i+','+j));(opt.extra||[]).forEach(([i,j])=>all.add(i+','+j));
+ const hl=new Set((opt.hl||[]).map(e=>e.join(',')));
+ function path(i,j,cls){const [x1,y1]=P[s[i]],[x2,y2]=P[s[j]];let d;
+  if(i===j){let dx=x1-gx,dy=y1-gy,L=Math.hypot(dx,dy)||1;if(L<1){dx=0;dy=-1;L=1}const ux=dx/L,uy=dy/L,px=-uy,py=ux;
+   const sx=x1+ux*r*.7+px*r*.7,sy=y1+uy*r*.7+py*r*.7,ex=x1+ux*r*.7-px*r*.7,ey=y1+uy*r*.7-py*r*.7;
+   d=`M${sx},${sy} C${x1+ux*(r+34)+px*22},${y1+uy*(r+34)+py*22} ${x1+ux*(r+34)-px*22},${y1+uy*(r+34)-py*22} ${ex},${ey}`}
+  else{const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,bi=all.has(j+','+i),off=bi?10:0,px=-uy*off,py=ux*off;
+   const sx=x1+ux*r+px,sy=y1+uy*r+py,ex=x2-ux*(r+3)+px,ey=y2-uy*(r+3)+py;
+   d=bi?`M${sx},${sy} Q${(sx+ex)/2+px*1.4},${(sy+ey)/2+py*1.4} ${ex},${ey}`:`M${sx},${sy} L${ex},${ey}`}
+  const p=document.createElementNS(NS,'path');p.setAttribute('d',d);p.setAttribute('class','edge '+cls);
+  p.setAttribute('marker-end',`url(#m-${svg.id}-${cls==='hl'?'hl':cls==='add'?'add':cls==='miss'?'miss':'ink'})`);svg.appendChild(p)}
+ E.forEach(([i,j])=>path(i,j,hl.has(i+','+j)?'hl':''));
+ (opt.extra||[]).forEach(([i,j])=>path(i,j,'add'));
+ (opt.miss||[]).forEach(([i,j])=>path(i,j,'miss'));
+ s.forEach((name,i)=>{const [x,y]=P[name];const g=document.createElementNS(NS,'g');
+  g.setAttribute('class','node'+(opt.sel===i?' sel':'')+((opt.nodes||[]).includes(i)?' hl':''));g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label','Nodo '+name);
+  g.innerHTML=`<circle cx="${x}" cy="${y}" r="${r}"></circle><text x="${x}" y="${y+5}" text-anchor="middle" style="font-size:${name.length>3?12:14}px">${name}</text>`;
+  if(opt.onNode){g.addEventListener('click',()=>opt.onNode(i));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();opt.onNode(i)}})}
+  svg.appendChild(g)})}
+function drawMatrix(tbl,R,opt){opt=opt||{};const s=R.set,M=opt.M||R.M,cells={};(opt.cells||[]).forEach(([i,j,c])=>cells[i+','+j]=c);
+ let h='<tr><th></th>'+s.map(x=>`<th title="${x}">${x}</th>`).join('')+'</tr>';
+ s.forEach((a,i)=>{h+=`<tr><th title="${a}">${a}</th>`+s.map((b,j)=>`<td><button class="cell ${M[i][j]?'one':''} ${i===j?'diag':''} ${cells[i+','+j]||''}" data-i="${i}" data-j="${j}" aria-label="(${a}, ${b}) ${M[i][j]?'sí':'no'}" ${opt.ro?'disabled':''}>${M[i][j]}</button></td>`).join('')+'</tr>'});
+ tbl.innerHTML=h;if(!opt.ro)tbl.querySelectorAll('.cell').forEach(b=>b.addEventListener('click',()=>opt.onCell(+b.dataset.i,+b.dataset.j)))}
+const pairsText=(R,M)=>{M=M||R.M;const o=[];M.forEach((r,i)=>r.forEach((v,j)=>{if(v)o.push(`(${R.set[i]}, ${R.set[j]})`)}));return '{ '+(o.join(', ')||'∅')+' }'};
+// ---------- puntos ----------
+let st={pts:0,streak:0,done:[]};try{const v=JSON.parse(localStorage.getItem('labrel')||'null');if(v)st=Object.assign(st,v)}catch(e){}
+function save(){try{localStorage.setItem('labrel',JSON.stringify(st))}catch(e){}}
+function hud(){$('#pts').textContent=st.pts;$('#streak').textContent=st.streak;$('#done').textContent=st.done.length}
+function addPts(n){st.pts+=n;hud();save();const c=$('#pts').parentElement;c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop')}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
+// ---------- LAB ----------
+let cur='S',R=mk(DS.S.set,DS.S.pairs),sel=null,showInv=false,showClo=false,active=null;
+const dsSel=$('#ds');Object.entries(DS).forEach(([k,d])=>{const o=document.createElement('option');o.value=k;o.textContent=d.name;dsSel.appendChild(o)});
+dsSel.addEventListener('change',()=>{cur=dsSel.value;R=mk(DS[cur].set,DS[cur].pairs);sel=null;active=null;showInv=showClo=false;renderLab()});
+function toggle(i,j){R.M[i][j]^=1;active=null;renderLab()}
+function onNode(i){if(sel===null){sel=i}else{toggle(sel,i);sel=null;return}renderLab()}
+$('#bInv').addEventListener('click',()=>{showInv=!showInv;active=null;renderLab()});
+$('#bClo').addEventListener('click',()=>{showClo=!showClo;active=null;renderLab();if(showClo){const n=closure(R.M).flat().filter(Boolean).length-R.M.flat().filter(Boolean).length;toast(n?`El cierre transitivo agrega ${n} flecha${n>1?'s':''} (punteadas en verde).`:'Ya es transitiva: el cierre no agrega nada.')}});
+$('#bClr').addEventListener('click',()=>{R=mk(R.set,[]);active=null;renderLab()});
+function renderLab(){const s=R.set;$('#dsctx').textContent=DS[cur].ctx;
+ const view=showInv?{set:s,M:T(R.M)}:R;const a=analyze(view);
+ let extra=[];if(showClo){const C=closure(view.M);C.forEach((r,i)=>r.forEach((v,j)=>{if(v&&!view.M[i][j])extra.push([i,j])}))}
+ const w=active?a[active]:null;
+ draw($('#g'),view,{kind:DS[cur].pos||(cur==='D'?'D':null),sel,onNode:showInv?null:onNode,extra,hl:w&&w.edges,miss:w&&w.miss,nodes:w&&w.nodes});
+ drawMatrix($('#mx'),R,{M:view.M,ro:showInv,onCell:toggle,cells:w&&w.cells});
+ $('#pairs').textContent=(showInv?'R⁻¹ = ':'R = ')+pairsText(view);
+ const dom=[],ran=[];view.M.forEach((r,i)=>r.forEach((v,j)=>{if(v){if(!dom.includes(s[i]))dom.push(s[i]);if(!ran.includes(s[j]))ran.push(s[j])}}));
+ $('#dom').textContent='{ '+(s.filter(x=>dom.includes(x)).join(', ')||'∅')+' }';$('#ran').textContent='{ '+(s.filter(x=>ran.includes(x)).join(', ')||'∅')+' }';
+ $('#bInv').classList.toggle('on',showInv);$('#bInv').setAttribute('aria-pressed',showInv);$('#bClo').classList.toggle('on',showClo);$('#bClo').setAttribute('aria-pressed',showClo);
+ $('#props').innerHTML=PROPS.map(([k,n])=>`<button class="prop ${a[k].ok?'yes':'no'} ${active===k?'active':''}" data-k="${k}"><div class="t">${n}<span class="st">${a[k].ok?'SÍ':'NO'}</span></div><div class="why">${a[k].why}</div></button>`).join('');
+ $('#props').querySelectorAll('.prop').forEach(b=>b.addEventListener('click',()=>{active=active===b.dataset.k?null:b.dataset.k;renderLab()}));
+ $('#verdict').innerHTML=verdictText(view,a)}
+// ---------- DESAFÍOS ----------
+const ABC=['a','b','c'],ABCD=['a','b','c','d'];
+const cnt=R=>R.M.flat().filter(Boolean).length,loops=R=>R.M.filter((r,i)=>r[i]).length;
+const CH=[
+ {t:'Reflexiva, pero no simétrica',set:ABC,req:[['refl',1],['sym',0]],hint:'Empezar con los tres lazos y agregar una sola flecha sin su vuelta.'},
+ {t:'Simétrica, pero no reflexiva',set:ABC,req:[['sym',1],['refl',0]],extra:[[R=>cnt(R)>=2,'Al menos 2 flechas']],hint:'Una flecha de ida y vuelta entre a y b, sin lazos.'},
+ {t:'Transitiva, con exactamente 3 flechas y sin lazos',set:ABC,req:[['tran',1]],extra:[[R=>cnt(R)===3,'Exactamente 3 flechas'],[R=>loops(R)===0,'Ningún lazo']],hint:'Un camino a → b → c necesita su atajo.'},
+ {t:'Simétrica y antisimétrica a la vez',set:ABC,req:[['sym',1],['anti',1]],extra:[[R=>cnt(R)>=1,'Al menos 1 flecha']],hint:'¿Qué flechas son su propia vuelta?'},
+ {t:'Ninguna de las cuatro propiedades (como S «sigue a»)',set:ABC,req:[['refl',0],['sym',0],['anti',0],['tran',0]],hint:'Combinar una ida y vuelta con una flecha suelta.'},
+ {t:'Su inversa es ella misma, pero no es transitiva',set:ABC,req:[['sym',1],['tran',0]],hint:'R⁻¹ = R significa simétrica. Probar a ↔ b y b ↔ c.'},
+ {t:'Equivalencia con exactamente 5 flechas',set:ABC,req:[['refl',1],['sym',1],['tran',1]],extra:[[R=>cnt(R)===5,'Exactamente 5 flechas']],hint:'Dos clases: una de 2 elementos (4 pares) y otra de 1 (1 par).'},
+ {t:'Equivalencia con exactamente 2 clases',set:ABCD,req:[['refl',1],['sym',1],['tran',1]],extra:[[R=>analyze(R).refl.ok&&classes(R).length===2,'Exactamente 2 clases']],hint:'Partir {a, b, c, d} en dos grupos y conectar todo dentro de cada grupo.'},
+ {t:'Orden parcial en el que a está debajo de todos',set:ABCD,req:[['refl',1],['anti',1],['tran',1]],extra:[[R=>R.M[0].every(Boolean),'a se relaciona con todos']],hint:'Lazos en todos, flechas de a hacia b, c y d.'},
+ {t:'Orden parcial con forma de rombo (como «es divisor de»)',set:ABCD,req:[['refl',1],['anti',1],['tran',1]],extra:[[R=>{const M=R.M;return M[0][1]&&M[0][2]&&M[1][3]&&M[2][3]&&!M[1][2]&&!M[2][1]},'a debajo de b y c; b y c debajo de d; b y c no comparables']],hint:'Pensar en 1, 2, 3 y 6. No olvidar el atajo de a hacia d.'}
+];
+let ci=0,CR=mk(ABC,[]),csel=null;
+function renderChList(){$('#chlist').innerHTML=CH.map((c,i)=>`<button class="chbtn ${i===ci?'cur':''} ${st.done.includes(i)?'done':''}" data-i="${i}"><div class="n">Desafío ${i+1}</div><div class="s">${c.t}</div></button>`).join('');
+ $('#chlist').querySelectorAll('.chbtn').forEach(b=>b.addEventListener('click',()=>{loadCh(+b.dataset.i)}))}
+function loadCh(i){ci=i;CR=mk(CH[i].set,[]);csel=null;$('#chhinttext').hidden=true;renderChList();renderCh()}
+function chStatus(){const c=CH[ci],a=analyze(CR);const items=c.req.map(([k,v])=>[a[k].ok===!!v,(v?'Es ':'No es ')+PROPS.find(p=>p[0]===k)[1].toLowerCase()]);(c.extra||[]).forEach(([f,t])=>items.push([!!f(CR),t]));return items}
+function cToggle(i,j){CR.M[i][j]^=1;renderCh()}
+function renderCh(){const c=CH[ci];$('#chnum').textContent=`Desafío ${ci+1} de ${CH.length} · +${30+ci*5} puntos`;$('#chtitle').textContent=c.t;
+ $('#chset').textContent='Conjunto: { '+c.set.join(', ')+' }';
+ $('#chreq').innerHTML=chStatus().map(([ok,t])=>`<li class="${ok?'ok':''}">${t}</li>`).join('');
+ draw($('#g2'),CR,{sel:csel,onNode:i=>{if(csel===null){csel=i;renderCh()}else{const s=csel;csel=null;cToggle(s,i)}}});
+ drawMatrix($('#mx2'),CR,{onCell:cToggle});$('#pairs2').textContent='R = '+pairsText(CR);
+ const a=analyze(CR);$('#props2').innerHTML=PROPS.map(([k,n])=>`<div class="prop ${a[k].ok?'yes':'no'}" style="cursor:default"><div class="t">${n}<span class="st">${a[k].ok?'SÍ':'NO'}</span></div></div>`).join('')}
+$('#chcheck').addEventListener('click',()=>{const s=chStatus();if(s.every(x=>x[0])){if(!st.done.includes(ci)){st.done.push(ci);addPts(30+ci*5);st.streak++;}hud();save();toast('🎉 ¡Desafío superado! Ceibo Software aprueba la relación.');renderChList();
+  const nx=CH.findIndex((_,i)=>!st.done.includes(i));if(nx>=0)setTimeout(()=>loadCh(nx),1400)}
+ else{st.streak=0;hud();save();toast(`Todavía falta: ${s.filter(x=>!x[0]).map(x=>x[1].toLowerCase()).join(' · ')}`)}});
+$('#chhint').addEventListener('click',()=>{const h=$('#chhinttext');h.textContent='💡 '+CH[ci].hint;h.hidden=false});
+$('#chreset').addEventListener('click',()=>{CR=mk(CH[ci].set,[]);csel=null;renderCh()});
+// ---------- QUIZ ----------
+const NAMES=[['1MA','1MB','1MC'],['Lu','Max','Nico','Ori'],['P1','PA','PW','BD'],['a','b','c','d'],['🎮','🎵','📚'],['x','y','z']];
+let q={round:0,ok:0,R:null,ans:{},checked:false};
+function randRel(){const set=NAMES[Math.floor(Math.random()*NAMES.length)],n=set.length,R=mk(set,[]),t=Math.random();
+ if(t<.25){const g=set.map(()=>Math.floor(Math.random()*2));for(let i=0;i<n;i++)for(let j=0;j<n;j++)R.M[i][j]=g[i]===g[j]?1:0;if(Math.random()<.3){const i=Math.floor(Math.random()*n);R.M[i][i]=0}}
+ else if(t<.5){const p=set.map((_,i)=>i).sort(()=>Math.random()-.5);for(let a=0;a<n;a++)for(let b=a;b<n;b++)if(a===b||Math.random()<.6)R.M[p[a]][p[b]]=1;R.M=closure(R.M);if(Math.random()<.4){const i=Math.floor(Math.random()*n);R.M[i][i]=0}}
+ else{for(let i=0;i<n;i++)for(let j=0;j<n;j++)R.M[i][j]=Math.random()<(i===j?.4:.35)?1:0;if(Math.random()<.3)R.M=R.M.map((r,i)=>r.map((v,j)=>v||R.M[j][i]))}
+ if(!cnt(R))R.M[0][1]=1;return R}
+function newRound(){q.R=randRel();q.ans={};q.checked=false;$('#qnext').hidden=true;$('#qcheck').hidden=false;renderQ()}
+function renderQ(){const a=analyze(q.R);$('#qtitle').textContent=`Ronda ${q.round+1} de 5`;$('#qok').textContent=q.ok;$('#qbar').style.width=(q.round*20)+'%';
+ draw($('#g3'),q.R,{});$('#pairs3').textContent='R = '+pairsText(q.R);
+ $('#qgrid').innerHTML=PROPS.map(([k,n])=>{let cls='',fb='';if(q.checked){const right=q.ans[k]===a[k].ok;cls=right?'right':'wrong';fb=`<div class="fb">${right?'✓ ':'✗ '}${a[k].why}</div>`}
+  return `<div class="qitem ${cls}"><div class="name">${n}</div><div class="seg"><button data-k="${k}" data-v="1" class="${q.ans[k]===true?'pick':''}" ${q.checked?'disabled':''}>Sí</button><button data-k="${k}" data-v="0" class="${q.ans[k]===false?'pick':''}" ${q.checked?'disabled':''}>No</button></div>${fb}</div>`}).join('');
+ $('#qgrid').querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{q.ans[b.dataset.k]=b.dataset.v==='1';renderQ()}))}
+$('#qcheck').addEventListener('click',()=>{if(Object.keys(q.ans).length<4){toast('Falta responder alguna propiedad.');return}
+ const a=analyze(q.R);let k=0;PROPS.forEach(([p])=>{if(q.ans[p]===a[p].ok)k++});q.ok+=k;addPts(k*10+(k===4?20:0));
+ if(k===4){st.streak++;toast('🔥 ¡Las cuatro bien! +60 puntos')}else{st.streak=0;toast(`${k} de 4. Leer los contraejemplos marcados.`)}hud();save();
+ q.checked=true;$('#qcheck').hidden=true;$('#qnext').hidden=false;$('#qnext').textContent=q.round<4?'Siguiente ronda →':'Ver resultado';renderQ()});
+$('#qnext').addEventListener('click',()=>{q.round++;if(q.round>=5){$('#qbar').style.width='100%';$('#qend').hidden=false;
+  $('#qend').innerHTML=`<div class="big">${q.ok}/20</div><b>${q.ok>=17?'Detective experto/a 🕵️':q.ok>=12?'Muy buen ojo 👀':'A seguir practicando 💪'}</b><br>Aciertos en las 5 rondas.<div class="row" style="margin-top:8px"><button class="btn primary" id="qagain">Jugar otra vez</button></div>`;
+  $('#qnext').hidden=true;$('#qagain').addEventListener('click',()=>{q.round=0;q.ok=0;$('#qend').hidden=true;newRound()});return}newRound()});
+// ---------- tabs ----------
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
+ ['lab','ch','quiz'].forEach(t=>$('#v-'+t).hidden=t!==b.dataset.tab);try{localStorage.setItem('labrel-tab',b.dataset.tab)}catch(e){}}));
+hud();renderLab();renderChList();loadCh(0);newRound();
+try{const t=localStorage.getItem('labrel-tab');if(t&&t!=='lab')document.querySelector(`nav button[data-tab="${t}"]`).click()}catch(e){}
+})();
+</script>
+
+</body></html>
